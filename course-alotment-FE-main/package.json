@@ -1,0 +1,88 @@
+{
+  "name": "course-time-table",
+  "version": "1.0.1",
+  "private": true,
+  "dependencies": {
+    "@chakra-ui/icons": "^1.1.5",
+    "@chakra-ui/react": "1.8.8",
+    "@chakra-ui/system": "^1.12.1",
+    "@chakra-ui/theme-tools": "^1.3.6",
+    "@emotion/cache": "^11.7.1",
+    "@emotion/react": "^11.4.1",
+    "@emotion/styled": "^11.3.0",
+    "@hypertheme-editor/chakra-ui": "^0.1.5",
+    "@mui/icons-material": "^6.1.3",
+    "@testing-library/jest-dom": "^5.14.1",
+    "@testing-library/react": "^11.2.7",
+    "@testing-library/user-event": "^12.8.3",
+    "apexcharts": "3.35.2",
+    "axios": "^1.6.8",
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-register": "^6.26.0",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^4.1.17",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.503.0",
+    "multer": "^1.4.5-lts.1",
+    "prisma": "^5.11.0",
+    "react": "17.0.2",
+    "react-apexcharts": "1.4.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-calendar": "^3.7.0",
+    "react-countup": "^6.5.3",
+    "react-custom-scrollbars-2": "^4.2.1",
+    "react-dom": "17.0.2",
+    "react-dropzone": "^12.0.4",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^4.3.1",
+    "react-intersection-observer": "^9.16.0",
+    "react-is": "^18.0.0",
+    "react-modal": "^3.16.3",
+    "react-router-dom": "^5.3.0",
+    "react-scripts": "^5.0.0",
+    "react-select": "^5.8.1",
+    "react-slick": "^0.30.3",
+    "react-table": "^7.7.0",
+    "recharts": "^2.15.3",
+    "slick-carousel": "^1.8.1",
+    "stylis": "^4.1.1",
+    "stylis-plugin-rtl": "2.0.2",
+    "web-vitals": "^1.1.2",
+    "xlsx": "^0.18.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "sitemap": "babel-node ./sitemap-builder.js"
+  },
+  "resolutions": {
+    "react-error-overlay": "6.0.9"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "gh-pages": "^3.2.3"
+  }
+}

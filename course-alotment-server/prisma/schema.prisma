@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model course {
+  id                Int      @id @default(autoincrement())
+  name              String
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+  course_code       String   @unique(map: "Course_course_code_key")
+  credit_hour       Int
+  practical_classes Int
+  theory_classes    Int
+  Pre_Reqs          String?  @db.VarChar(255)
+}
+
+model courseoffering {
+  id             Int              @id @default(autoincrement())
+  courses        Json
+  coursename     String           @db.VarChar(255)
+  contact        Int?
+  teachers       Json
+  status         String           @db.VarChar(50)
+  lab_classes    Int?
+  sectionData    Json
+  theory_classes Int?
+  total_cr_hrs   Int
+  section        section[]
+  timetableentry timetableentry[]
+}
+
+model room {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(50)
+  type           room_type
+  multimedia     Boolean          @default(false)
+  totalSpace     Int
+  occupiedSpace  Int
+  totalPCs       Int?
+  availablePCs   Int?
+  createdAt      DateTime?        @default(now()) @db.Timestamp(0)
+  updatedAt      DateTime?        @default(now()) @db.Timestamp(0)
+  section        section[]
+  timetableentry timetableentry[]
+}
+
+model section {
+  id               Int              @id @default(autoincrement())
+  degreeName       String           @db.VarChar(50)
+  semester         Int
+  section          String           @db.VarChar(5)
+  shift            String           @db.VarChar(2)
+  studentCount     Int
+  sectionDisplay   String?          @db.VarChar(50)
+  createdAt        DateTime?        @default(now()) @db.Timestamp(0)
+  updatedAt        DateTime?        @default(now()) @db.Timestamp(0)
+  roomId           Int?
+  courseOfferingId Int?
+  room             room?            @relation(fields: [roomId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "section_ibfk_1")
+  courseoffering   courseoffering?  @relation(fields: [courseOfferingId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "section_ibfk_2")
+  timetableentry   timetableentry[]
+
+  @@index([courseOfferingId], map: "courseOfferingId")
+  @@index([roomId], map: "roomId")
+}
+
+model student {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  aridno       String   @unique(map: "Student_aridno_key")
+  cnic         String   @unique(map: "Student_cnic_key")
+  degree       String
+  name         String
+  updatedAt    DateTime
+  section      String
+  semester     String
+  shift        String
+  classes_info Json
+  courses      Json
+  password     String   @default("12345678")
+}
+
+model teacher {
+  id            Int      @id @default(autoincrement())
+  name          String
+  cnic          String   @unique(map: "Teacher_cnic_key")
+  teacherid     String   @unique(map: "Teacher_teacherid_key")
+  qualification String
+  gender        String
+  createdAt     DateTime @default(now())
+  updateAt      DateTime
+  courses       Json
+  password      String   @default("12345678")
+}
+
+model timetableentry {
+  id             Int             @id @default(autoincrement())
+  day            String          @db.VarChar(20)
+  startTime      DateTime        @db.DateTime(0)
+  endTime        DateTime        @db.DateTime(0)
+  roomId         Int?
+  courseId       Int?
+  sectionId      Int?
+  teacher        String?         @db.VarChar(100)
+  createdAt      DateTime?       @default(now()) @db.Timestamp(0)
+  updatedAt      DateTime?       @default(now()) @db.Timestamp(0)
+  room           room?           @relation(fields: [roomId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "timetableentry_ibfk_1")
+  courseoffering courseoffering? @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "timetableentry_ibfk_2")
+  section        section?        @relation(fields: [sectionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "timetableentry_ibfk_3")
+  cancellations  ClassCancellation[]
+   // Reschedule relations
+  originalReschedules ClassReschedule[] @relation("OriginalEntry")
+  newReschedules      ClassReschedule[] @relation("RescheduledEntry")
+  
+  @@index([courseId], map: "courseId")
+  @@index([roomId], map: "roomId")
+  @@index([sectionId], map: "sectionId")
+}
+
+// Add this new model to your schema.prisma file
+model ClassCancellation {
+  id              Int             @id @default(autoincrement())
+  timetableId     Int
+  teacherId       Int
+  reason          String?         @db.Text
+  cancelledAt     DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  timetableentry  timetableentry  @relation(fields: [timetableId], references: [id], onDelete: Cascade)
+  teacher         user            @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  reschedule     ClassReschedule? // One-to-one relation
+  @@index([timetableId], map: "timetableId")
+  @@index([teacherId], map: "teacherId")
+}
+
+model ClassReschedule {
+  id                  Int              @id @default(autoincrement())
+  cancellationId      Int              @unique
+  originalTimetableId Int
+  newTimetableId      Int              @unique
+  teacherId           Int
+  rescheduledBy       String
+  rescheduledAt       DateTime         @default(now())
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  
+  // Relations - Use lowercase model names to match your schema
+  cancellation        ClassCancellation @relation(fields: [cancellationId], references: [id], onDelete: Cascade)
+  originalTimetableEntry timetableentry @relation("OriginalEntry", fields: [originalTimetableId], references: [id])
+  newTimetableEntry   timetableentry   @relation("RescheduledEntry", fields: [newTimetableId], references: [id], onDelete: Cascade)
+  teacher             user             @relation(fields: [teacherId], references: [id])
+
+  @@map("class_reschedules")
+}
+
+model message {
+  id                            Int      @id @default(autoincrement())
+  senderId                      Int
+  receiverId                    Int
+  senderType                    String
+  receiverType                  String
+  message                       String
+  timestamp                     DateTime @default(now())
+  user_message_receiverIdTouser user     @relation("message_receiverIdTouser", fields: [receiverId], references: [id], map: "Message_receiverId_fkey")
+  user_message_senderIdTouser   user     @relation("message_senderIdTouser", fields: [senderId], references: [id], map: "Message_senderId_fkey")
+
+  @@index([receiverId], map: "Message_receiverId_fkey")
+  @@index([senderId], map: "Message_senderId_fkey")
+}
+
+model user {
+  id                               Int       @id @default(autoincrement())
+  name                             String
+  cnic                             String    @unique(map: "User_cnic_key")
+  aridno                           String?   @unique(map: "User_aridno_key")
+  degree                           String?
+  section                          String?
+  courses                          String?
+  classes_info                     String?
+  email                            String    @unique(map: "User_email_key")
+  createdAt                        DateTime  @default(now())
+  role                             String
+  teachersNo                       Int?      @unique(map: "User_teachersNo_key")
+  semester                         String?
+  shift                            String?
+  message_message_receiverIdTouser message[] @relation("message_receiverIdTouser")
+  message_message_senderIdTouser   message[] @relation("message_senderIdTouser")
+  cancellations   ClassCancellation[]
+    reschedules     ClassReschedule[]
+}
+
+enum room_type {
+  Class
+  Lecture_Theater @map("Lecture Theater")
+  Lab
+}
