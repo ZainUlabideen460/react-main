@@ -330,7 +330,7 @@ toast.success("course Offerings deleted successfully");
       size="sm"
       onClick={openModalForAdd}
     >
-      Add
+      Add Offerings
     </Button>
 
     <Button
@@ -348,7 +348,7 @@ toast.success("course Offerings deleted successfully");
       size="sm"
       onClick={openUploadModal}
     >
-      Upload Courses
+      Upload Course Offerings
     </Button>
 
     <Button

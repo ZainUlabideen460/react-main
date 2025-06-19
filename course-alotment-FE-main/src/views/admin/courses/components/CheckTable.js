@@ -29,7 +29,7 @@ import {
 } from '@chakra-ui/react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import filetemplate from '../../../../../src/assets/template_file/Book1.xlsx';
+import filetemplate from '../../../../../src/assets/template_file/course.xlsx';
 import { FiDownload, FiSearch } from "react-icons/fi"
 
 // Custom components

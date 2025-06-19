@@ -275,7 +275,7 @@ const [templatePop,settemplatePop] = useState(false);
       size="sm"
       onClick={() => setIsOpen(true)}
     >
-      Add Courses
+      Add Teachers
     </Button>
 
     <Button
@@ -293,7 +293,7 @@ const [templatePop,settemplatePop] = useState(false);
       size="sm"
       onClick={handleUploadClick}
     >
-      Upload Course
+      Upload Teachers
     </Button>
   </HStack>
 </Flex>
