@@ -31,6 +31,7 @@
     "react-native-toast-message": "^2.3.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
+    "socket.io-client": "^4.8.1",
     "@expo/metro-runtime": "~4.0.1"
   },
   "devDependencies": {

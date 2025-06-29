@@ -17,7 +17,7 @@ const scaleFont = (size) => {
   return Math.round((size * Math.min(width, Dimensions.get('window').height)) / 375);
 };
 
-const Navbar = ({ currentRoute }) => {
+const Navbar = ({ currentRoute, unreadCount = 0 }) => {
   const navigation = useNavigation();
   
   // Don't show navbar on login, signup, and welcomepage
@@ -27,7 +27,7 @@ const Navbar = ({ currentRoute }) => {
 
   // Define routes and their corresponding icons and labels
   const navItems = [
-    { route: 'chatbot', icon: 'chat', label: 'Chat' },
+    { route: 'chat', icon: 'chat', label: 'Chat' },
     { route: 'timetable', icon: 'event', label: 'Timetable' },
     { route: 'aboutus', icon: 'info', label: 'About' },
     { route: 'contactus', icon: 'contact-support', label: 'Contact' },
@@ -141,6 +141,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '33%',
+  },
+  badge: {
+    position: 'absolute',
+    right: -4,
+    top: -4,
+    backgroundColor: '#FF3B30',
+    borderRadius: 10,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    minWidth: 16,
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: scaleFont(8),
+    fontWeight: '700',
   },
   logoText: {
     fontSize: scaleFont(16),

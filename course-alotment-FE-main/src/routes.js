@@ -21,6 +21,7 @@ import TimeTable from "views/admin/timetable";
 import teacherview from "views/admin/teacherview/variable";
 import studentview from "views/admin/studentview/variable";
 import ViewTimetable from 'views/admin/viewtimetable/variable';
+import ChatPage from 'views/admin/chat';
 
 const routes = [
   {
@@ -100,6 +101,13 @@ const routes = [
     icon: MdOutlineSchool, // Students Icon
     component: StudentsTable,
   },
+  {
+    name: "Chat",
+    layout: "/admin",
+    path: "/chat",
+    icon: MdCoPresent,
+    component: ChatPage,
+  }
 ];
 
 export default routes;

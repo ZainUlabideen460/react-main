@@ -1,4 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import io from 'socket.io-client';
 import React, { useState } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -12,7 +15,7 @@ import Navbar from './ios/components/Navbar';
 import Timetable from './ios/components/Timetable';
 import Aboutus from './ios/components/Aboutus';
 import Contactus from './ios/components/Contactus';
-import Chartbord from './ios/components/Chartbord';
+import ChatScreen from './ios/components/ChatScreen';
 import Toast from 'react-native-toast-message';
 
 // Get initial window dimensions
@@ -27,7 +30,33 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState('welcomepage');
-  const url='http://192.168.18.107:3001';
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const url='http://192.168.61.59:3001';
+  const [user, setUser] = useState(null);
+
+  // Setup socket at app level
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('token');
+        if (!storedToken) return;
+        const userRes = await axios.get(`${url}/user`, { headers: { Authorization: `Bearer ${storedToken}` } });
+        setUser(userRes.data);
+        const socket = io(url, { transports: ['websocket'], withCredentials: true });
+        socket.on('connect', () => {
+          socket.emit('authenticate', userRes.data.id);
+        });
+        socket.on('newMessage', (msg) => {
+          if (msg.senderId !== userRes.data.id && currentRoute !== 'chat') {
+            setUnreadChatCount((p) => p + 1);
+          }
+        });
+        return () => socket.disconnect();
+      } catch (err) {
+        console.log('Global socket init error', err.message);
+      }
+    })();
+  }, []);
   //  console.log(url)
   return (
     <>
@@ -42,7 +71,7 @@ export default function App() {
             headerShown: false,
             contentStyle: {
               // Apply paddingBottom only for routes that show the Navbar
-              paddingBottom: ['viewstudent', 'viewteacher','timetable','aboutus','chatbot'].includes(route.name) ? scale(80) : 0,
+              paddingBottom: ['viewstudent', 'viewteacher','timetable','aboutus','chat'].includes(route.name) ? scale(80) : 0,
             },
           })}
           screenListeners={{
@@ -50,6 +79,9 @@ export default function App() {
               const routes = e.data.state.routes;
               const currentRoute = routes[routes.length - 1].name;
               setCurrentRoute(currentRoute);
+              if (currentRoute === 'chat') {
+                setUnreadChatCount(0);
+              }
             },
           }}
         >
@@ -61,9 +93,9 @@ export default function App() {
           <Stack.Screen name="timetable" component={props => <Timetable {...props} url={url}/>}  />
           <Stack.Screen name="contactus" component={props => <Contactus {...props} url={url}/>}  />
           <Stack.Screen name="aboutus" component={Aboutus}   />
-          <Stack.Screen name="chatbot" component={Chartbord} />
+          <Stack.Screen name="chat" component={props => <ChatScreen {...props} url={url} setUnreadCount={setUnreadChatCount} />} />
         </Stack.Navigator>
-        <Navbar currentRoute={currentRoute} />
+        <Navbar currentRoute={currentRoute} unreadCount={unreadChatCount} />
       </NavigationContainer>
       <Toast />
      

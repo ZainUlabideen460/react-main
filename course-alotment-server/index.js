@@ -2,7 +2,13 @@
 
 const { PrismaClient } = require("@prisma/client");
 const express = require("express");
+const http = require('http');
+const initializeSocket = require('./socket');
+
 const app = express();
+const server = http.createServer(app);
+const io = initializeSocket(server);
+app.set('socketio', io);
 const prisma = new PrismaClient();
 const cors = require("cors");
 const multer = require("multer");
@@ -17,7 +23,11 @@ const bcrypt = require('bcryptjs');
 
 const { authenticateToken, validateRegisterInput, validateLoginInput, requireTeacher } = require('./middlewares/auth');
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
 
 async function main() {
@@ -25,7 +35,8 @@ async function main() {
   
   // Setup automatic reactivation of canceled classes after 12 hours
   setupAutomaticClassReactivation();
-
+  const chatRoutes = require('./routes/chat');
+  app.use('/api/chat', chatRoutes);
   // ------------- Dashboard Endpoints -------------
 
   // Dashboard
@@ -972,6 +983,8 @@ app.post('/teachers/upload', upload.single('file'), async (req, res) => {
 
  
   // ------------- Rooms Endpoints -------------
+
+   // ------------- Rooms Endpoints -------------
 
   // POST - Create Room
   app.post("/rooms", async (req, res) => {

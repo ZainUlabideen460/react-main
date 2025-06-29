@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 // Chakra imports
 import {
   Box,
@@ -19,22 +20,29 @@ import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { RiEyeCloseLine } from "react-icons/ri";
 import { useHistory } from "react-router-dom";
 
-function SignIn() {
+const API_URL = process.env.REACT_APP_API_URL  || 'http://localhost:3001';
+// || 'http://192.168.170.58:3001'
+function SignIn({ isModal = false, closeModal }) {
   const history = useHistory();
   // Chakra color mode
   const textColor = useColorModeValue("navy.700", "white");
   const textColorSecondary = "gray.400";
   const brandStars = useColorModeValue("brand.500", "brand.400");
-  const [show, setShow] = React.useState(false);
+  const [show, setShow] = useState(false);
+  const [email, setEmail] = useState('');
+  const [cnic, setCnic] = useState('');
+  const [loading, setLoading] = useState(false);
   const handleClick = () => setShow(!show);
   return (
     <Flex
-      w="100vw"
-      h="100vh"
+      w={isModal ? '100%' : '100vw'}
+      h={isModal ? 'auto' : '100vh'}
       alignItems="center"
       justifyContent="center"
       flexDirection="column"
+      p={isModal ? 0 : 4}
     >
+      {!isModal && (
       <Box>
         <Heading
           color={textColor}
@@ -54,6 +62,7 @@ function SignIn() {
           Enter your email and password to sign in!
         </Text>
       </Box>
+      )}
       <Flex
         zIndex="2"
         direction="column"
@@ -73,12 +82,13 @@ function SignIn() {
             Email<Text color={brandStars}>*</Text>
           </FormLabel>
           <Input
-            isRequired={true}
+            isRequired
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
             variant="auth"
             fontSize="sm"
-            ms={{ base: "0px", md: "0px" }}
             type="email"
-            placeholder="mail@simmmple.com"
+            placeholder="admin@example.com"
             mb="24px"
             fontWeight="500"
             size="lg"
@@ -94,9 +104,11 @@ function SignIn() {
           </FormLabel>
           <InputGroup size="md">
             <Input
-              isRequired={true}
+              isRequired
+              value={cnic}
+              onChange={e=>setCnic(e.target.value)}
               fontSize="sm"
-              placeholder="Min. 8 characters"
+              placeholder="CNIC"
               mb="24px"
               size="lg"
               type={show ? "text" : "password"}
@@ -119,7 +131,21 @@ function SignIn() {
             w="100%"
             h="50"
             mb="24px"
-            onClick={() => history.push("/")}
+            onClick={async ()=>{
+              if(!email||!cnic) return alert('Enter credentials');
+              setLoading(true);
+              try{
+                const res = await axios.post(`${API_URL}/login`,{email,cnic});
+                localStorage.setItem('token',res.data.token);
+                if(closeModal) closeModal();
+                history.push('/admin/dashboard');
+              }catch(err){
+                alert(err.response?.data?.error || 'Login failed');
+              }finally{
+                setLoading(false);
+              }
+            }}
+            isLoading={loading}
           >
             Sign In
           </Button>

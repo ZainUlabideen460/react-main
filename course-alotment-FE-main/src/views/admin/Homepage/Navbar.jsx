@@ -10,12 +10,19 @@ import {
   keyframes,
   useColorMode,
   useColorModeValue,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
   useDisclosure,
   Menu,
   MenuButton,
 } from '@chakra-ui/react';
 import { motion, useViewportScroll, useTransform } from 'framer-motion';
 import { useHistory } from 'react-router-dom';
+import SignIn from '../../auth/signIn';
 import {
   Calendar,
   LogIn,
@@ -95,6 +102,7 @@ export const Navbar = () => {
   const starfieldAnimation = `${starfield} 8s infinite`;
   const { onOpen: onDrawerOpen } = useDisclosure();
   const { onOpen: onSearchOpen} = useDisclosure();
+  const { isOpen: isLoginOpen, onOpen: onLoginOpen, onClose: onLoginClose } = useDisclosure();
   const history = useHistory();
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
@@ -266,7 +274,7 @@ export const Navbar = () => {
               px={6}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => history.push('/admin')}
+              onClick={onLoginOpen}
               position="relative"
               overflow="hidden"
               _after={{
@@ -347,6 +355,18 @@ export const Navbar = () => {
           transition={{ duration: 0.2 }}
         />
       </Container>
+
+      {/* Login Modal */}
+      <Modal isOpen={isLoginOpen} onClose={onLoginClose} isCentered size="md">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Admin Login</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <SignIn isModal closeModal={onLoginClose} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </MotionBox>
   );
 };
