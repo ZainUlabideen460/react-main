@@ -31,7 +31,7 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState('welcomepage');
   const [unreadChatCount, setUnreadChatCount] = useState(0);
-  const url='http://192.168.61.59:3001';
+  const url='http://192.168.147.58:3001';
   const [user, setUser] = useState(null);
 
   // Setup socket at app level

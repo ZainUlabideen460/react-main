@@ -453,7 +453,86 @@ app.post('/teachers/upload', upload.single('file'), async (req, res) => {
       });
     }
   });
+ // GET - Export all teachers to Excel
+app.get('/api/teachers/export', async (req, res) => {
+  console.log('Teacher export endpoint hit');
+  try {
+    console.log('Attempting to fetch teachers...');
+    
+    // First, fetch all teachers without the courses
+    const teachers = await prisma.teacher.findMany({
+      orderBy: { id: 'asc' }
+    });
 
+    console.log(`Found ${teachers.length} teachers`);
+    
+    if (!teachers || teachers.length === 0) {
+      console.log('No teachers found');
+      return res.status(404).json({ 
+        success: false,
+        message: 'No teachers found in the database' 
+      });
+    }
+
+    // Log first teacher to verify data
+    console.log('First teacher sample:', JSON.stringify(teachers[0], null, 2));
+
+    // Format data for Excel with only existing fields
+    const excelData = teachers.map(teacher => {
+      try {
+        return {
+          'ID': teacher.id,
+          'Name': teacher.name || '',
+          'CNIC': teacher.cnic || '',
+          'Teacher ID': teacher.teacherid || '',
+          'Qualification': teacher.qualification || '',
+          'Gender': teacher.gender || ''
+          // 'Department': teacher.department || '',
+          // 'Designation': teacher.designation || '',
+          // 'Created At': teacher.createdAt ? new Date(teacher.createdAt).toLocaleString() : '',
+          // 'Updated At': teacher.updateAt ? new Date(teacher.updateAt).toLocaleString() : '',
+          // 'Courses': 'N/A' // We'll handle this separately if needed
+        };
+      } catch (mapError) {
+        console.error('Error mapping teacher:', teacher.id, mapError);
+        return null;
+      }
+    }).filter(Boolean); // Remove any null entries from mapping errors
+
+    // Create workbook and worksheet
+    const worksheet = xlsx.utils.json_to_sheet(excelData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Teachers');
+
+    // Generate Excel file buffer
+    const excelBuffer = xlsx.write(workbook, { 
+      bookType: 'xlsx', 
+      type: 'buffer' 
+    });
+
+    // Set response headers
+    res.setHeader('Content-Disposition', 'attachment; filename=teachers_export.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    
+    // Send the Excel file
+    console.log('Sending Excel file...');
+    return res.send(excelBuffer);
+
+  } catch (error) {
+    console.error('Export error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to export teachers',
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
   
   // ------------- Classes Endpoints -------------
 
@@ -915,6 +994,71 @@ app.post('/teachers/upload', upload.single('file'), async (req, res) => {
     }
   });
 
+   // GET - Export all courses to Excel
+app.get('/api/courses/export', async (req, res) => {
+  console.log('Export endpoint hit');
+  try {
+    // First, try to get the courses
+    console.log('Attempting to fetch courses...');
+    const courses = await prisma.course.findMany({
+      orderBy: { id: 'asc' }
+    });
+
+    console.log(`Found ${courses.length} courses`);
+    
+    if (!courses || courses.length === 0) {
+      console.log('No courses found');
+      return res.status(404).json({ 
+        success: false,
+        message: 'No courses found in the database' 
+      });
+    }
+
+    // Format data for Excel
+    const excelData = courses.map(course => {
+      // Create a safe course object with all possible fields
+      return {
+        'ID': course.id,
+        'Name': course.name || '',
+        'Course Code': course.course_code || course.courseCode || '',
+        'Credit Hours': course.credit_hour || course.creditHour || 0,
+        'Theory Classes': course.theory_classes || 0,
+        'Practical Classes': course.practical_classes || 0,
+        'Prerequisites': course.Pre_Reqs || course.preReqs || 'None'
+        // 'Created At': course.createdAt ? new Date(course.createdAt).toISOString() : '',
+        // 'Updated At': course.updatedAt ? new Date(course.updatedAt).toISOString() : ''
+      };
+    });
+
+    // Create workbook and worksheet
+    const worksheet = xlsx.utils.json_to_sheet(excelData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Courses');
+
+    // Generate Excel file buffer
+    const excelBuffer = xlsx.write(workbook, { 
+      bookType: 'xlsx', 
+      type: 'buffer' 
+    });
+
+    // Set response headers
+    res.setHeader('Content-Disposition', 'attachment; filename=courses_export.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    
+    // Send the Excel file
+    console.log('Sending Excel file...');
+    return res.send(excelBuffer);
+
+  } catch (error) {
+    console.error('Export error:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to export courses',
+      error: error.message
+    });
+  }
+});
+
   // ------------- Student & Teacher Login Endpoints -------------
 
   // POST - Student Login
@@ -1071,6 +1215,147 @@ app.post('/teachers/upload', upload.single('file'), async (req, res) => {
     }
   });
 
+    // GET - Export Rooms to Excel
+app.get('/api/room/export', async (req, res) => {
+  console.log('Room export endpoint hit');
+  try {
+    // Get all rooms
+    const rooms = await prisma.room.findMany({
+      orderBy: { id: 'asc' }
+    });
+
+    console.log(`Found ${rooms.length} rooms`);
+    
+    if (!rooms || rooms.length === 0) {
+      console.log('No rooms found');
+      return res.status(404).json({ 
+        success: false,
+        message: 'No rooms found in the database' 
+      });
+    }
+
+    // Format the data for Excel - matching your database model
+    const excelData = rooms.map(room => ({
+      'ID': room.id,
+      'NAME': room.name || 'N/A',
+      'TYPE': room.type === 'Lecture_Theater' ? 'Lecture Theater' : room.type || 'N/A',
+      'MULTIMEDIA': room.multimedia ? 'Yes' : 'No',
+      'TOTAL SPACE': room.totalSpace || 0,
+      'OCCUPIED SPACE': room.occupiedSpace || 0,
+      'AVAILABLE SPACE': (room.totalSpace || 0) - (room.occupiedSpace || 0),
+      'TOTAL PCS': room.type === 'Lab' ? (room.totalPCs || 0) : 'N/A'
+      // 'AVAILABLE PCS': room.type === 'Lab' ? (room.availablePCs || 0) : 'N/A'
+    }));
+
+    // Create workbook and worksheet
+    const worksheet = xlsx.utils.json_to_sheet(excelData);
+    const workbook = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(workbook, worksheet, 'Rooms');
+
+    // Auto-size columns
+    const columnWidths = Object.keys(excelData[0]).map(header => ({
+      wch: Math.max(
+        header.length, // header length
+        ...excelData.map(row => String(row[header]).length) // max data length
+      ) + 2 // add some padding
+    }));
+    worksheet['!cols'] = columnWidths;
+
+    // Generate Excel file buffer
+    const excelBuffer = xlsx.write(workbook, { 
+      bookType: 'xlsx', 
+      type: 'buffer' 
+    });
+
+    // Set response headers
+    res.setHeader('Content-Disposition', 'attachment; filename=rooms_export.xlsx');
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    
+    // Send the Excel file
+    console.log('Sending Excel file...');
+    return res.send(excelBuffer);
+
+  } catch (error) {
+    console.error('Export error:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to export room data',
+      error: error.message
+    });
+  }
+});
+
+
+// POST - Import Rooms from Excel
+app.post('/api/room/import', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'No file uploaded' 
+      });
+    }
+
+    const workbook = xlsx.readFile(req.file.path);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = xlsx.utils.sheet_to_json(worksheet);
+
+    const results = [];
+    
+    for (const row of jsonData) {
+      try {
+        const roomData = {
+          name: row['NAME'] || '',
+          type: (row['TYPE'] === 'Lecture Theater' ? 'Lecture_Theater' : row['TYPE']) || 'Classroom',
+          multimedia: (row['MULTIMEDIA'] || '').toString().toLowerCase() === 'yes',
+          totalSpace: parseInt(row['TOTAL SPACE']) || 0,
+          occupiedSpace: parseInt(row['OCCUPIED SPACE']) || 0,
+          totalPCs: row['TYPE'] === 'Lab' ? (parseInt(row['TOTAL PCS']) || 0) : null,
+          availablePCs: row['TYPE'] === 'Lab' ? (parseInt(row['AVAILABLE PCS']) || 0) : null
+        };
+
+        const room = await prisma.room.upsert({
+          where: { name: roomData.name },
+          update: roomData,
+          create: roomData
+        });
+
+        results.push({
+          success: true,
+          room: room.name,
+          message: 'Processed successfully'
+        });
+      } catch (error) {
+        results.push({
+          success: false,
+          room: row['NAME'] || 'Unknown',
+          message: error.message
+        });
+      }
+    }
+
+    // Delete the uploaded file
+    fs.unlinkSync(req.file.path);
+
+    return res.json({
+      success: true,
+      message: 'Import completed',
+      results: results
+    });
+
+  } catch (error) {
+    console.error('Import error:', error);
+    if (req.file?.path) {
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
+    }
+    return res.status(500).json({ 
+      success: false,
+      message: 'Failed to process import',
+      error: error.message
+    });
+  }
+});
   // ------------- Sections Endpoints -------------
 
   // GET - All Sections
@@ -1242,6 +1527,123 @@ app.post('/teachers/upload', upload.single('file'), async (req, res) => {
     }
   });
 
+   // Endpoint to export sections to Excel with specific fields
+  app.get("/sections/export", async (req, res) => {
+    try {
+      // Fetch sections from the database
+      const sections = await prisma.section.findMany({
+        select: {
+          id: true,
+          degreeName: true,
+          semester: true,
+          section: true,
+          shift: true,
+          studentCount: true
+        },
+        orderBy: {
+          id: 'asc'
+        }
+      });
+      
+      // Map the data to ensure we only have the fields we want
+      const formattedSections = sections.map(section => ({
+        'ID': section.id,
+        'DEGREE NAME': section.degreeName,
+        'SEMESTER': section.semester,
+        'SECTION': section.section,
+        'SHIFT': section.shift,
+        'STUDENT COUNT': section.studentCount
+      }));
+      
+      // Convert to Excel worksheet
+      const worksheet = xlsx.utils.json_to_sheet(formattedSections);
+      const workbook = xlsx.utils.book_new();
+      xlsx.utils.book_append_sheet(workbook, worksheet, "Sections");
+      
+      // Generate Excel file
+      const excelBuffer = xlsx.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+      
+      // Set headers for file download
+      res.setHeader('Content-Disposition', 'attachment; filename=sections.xlsx');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      
+      // Send the Excel file
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error exporting sections:', error);
+      res.status(500).json({ 
+        message: 'Error exporting sections to Excel',
+        error: error.message 
+      });
+    }
+  });
+
+  // Add this with other section endpoints
+app.post('/sections/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Read the uploaded Excel file
+    const workbook = xlsx.readFile(req.file.path);
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = xlsx.utils.sheet_to_json(worksheet);
+
+    // Process and validate each row
+    const sections = data.map(row => {
+      // Map Excel columns to your database fields
+      // Adjust the mapping based on your Excel file's column headers
+      return {
+        degreeName: row['DEGREE NAME'] || row['degreeName'],
+        semester: parseInt(row['SEMESTER'] || row['semester']),
+        section: String(row['SECTION'] || row['section'] || ''),
+        shift: String(row['SHIFT'] || row['shift'] || ''),
+        studentCount: parseInt(row['STUDENT COUNT'] || row['studentCount'] || 0)
+      };
+    });
+
+    // Validate sections
+    for (const section of sections) {
+      if (!section.degreeName || isNaN(section.semester) || !section.section || !section.shift || isNaN(section.studentCount)) {
+        return res.status(400).json({ 
+          message: 'Invalid data format in the uploaded file',
+          error: 'Missing or invalid required fields'
+        });
+      }
+    }
+
+    // Insert sections into the database
+    const createdSections = await prisma.$transaction(
+      sections.map(section => 
+        prisma.section.create({
+          data: {
+            ...section,
+            sectionDisplay: `${section.degreeName}-${section.semester}${section.section}(${section.shift})`
+          }
+        })
+      )
+    );
+
+    // Clean up the uploaded file
+    fs.unlinkSync(req.file.path);
+
+    res.status(201).json({ 
+      message: 'Sections uploaded successfully',
+      count: createdSections.length
+    });
+
+  } catch (error) {
+    console.error('Error uploading sections:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ 
+      message: 'Error uploading sections',
+      error: error.message 
+    });
+  }
+});
   // ------------- Course Offerings Endpoints -------------
 
 

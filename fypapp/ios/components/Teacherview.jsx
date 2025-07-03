@@ -801,7 +801,7 @@ const Teacherview = ({ url }) => {
                       {cancellation.reason}
                     </Text>
                     <View style={styles.cancelledClassButtons}>
-                      {!isRescheduled && (
+                      {/* {!isRescheduled && (
                         <TouchableOpacity
                           style={[styles.reactivateButton, { backgroundColor: '#2196F3' }]}
                           onPress={() => {
@@ -811,7 +811,7 @@ const Teacherview = ({ url }) => {
                         >
                           <Text style={styles.reactivateButtonText}>Reschedule</Text>
                         </TouchableOpacity>
-                      )}
+                      )} */}
                       <TouchableOpacity
                         style={styles.reactivateButton}
                         onPress={() => {

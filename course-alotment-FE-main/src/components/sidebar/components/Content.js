@@ -30,7 +30,7 @@
 
 // export default SidebarContent;
 import React from "react";
-import { Box, Flex, Stack, Image, Text } from "@chakra-ui/react";
+import { Box, Flex,Image , Stack, Text } from "@chakra-ui/react";
 import SidebarLinks from "components/sidebar/components/Links";
 import routes from "routes"; // Import the routes you defined
 // import Logo from "path-to-logo/logo.png"; // Replace with your logo path
@@ -45,16 +45,18 @@ function SidebarContent() {
       borderRadius="1px"
       bg="gray.800"
       color="white"
+     
+    
     >
       {/* Logo at the top */}
-      <Flex align="center" direction="column" mb="20px">
-        {/* <Image src={Logo} alt="Logo" boxSize="80px" /> */}
-        <Text fontSize="xl" fontWeight="bold" mt="10px">
+      <Flex align="center" direction="column" mb="0px">
+   
+        <Text fontSize="xl" fontWeight="bold" ml="-70px" mt="10px">
           Admin Panel
         </Text>
       </Flex>
 
-      <Stack direction="column" mb="auto" mt="8px">
+      <Stack direction="column" mb="auto"   mt="8px">
         <Box ps="20px" pe={{ md: "16px", "2xl": "1px" }}>
           <SidebarLinks routes={routes} />
         </Box>

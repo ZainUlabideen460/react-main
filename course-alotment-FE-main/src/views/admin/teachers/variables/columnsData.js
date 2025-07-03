@@ -7,10 +7,10 @@ export const columnsDataCheck = [
     Header: "Teacher NAME",
     accessor: "Teacher Name",
   },
-  {
-    Header: "PASSWORD",
-    accessor: "password",
-  },
+  // {
+  //   Header: "PASSWORD",
+  //   accessor: "password",
+  // },
   {
     Header: "CNIC",
     accessor: "cnic",
